@@ -1,47 +1,58 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import jwt
 import datetime
 from functools import wraps
+import os
 
 app = Flask(__name__)
-CORS(app)
-app.config['SECRET_KEY'] = 'FlareSecurity_Secret_Key_2026' # Change this for production
+CORS(app) # Frontend connectivity ke liye
+app.config['SECRET_KEY'] = 'Flare_Security_Admin_2026'
 
-# Token Verification Middleware
+# --- JWT Protection Middleware ---
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization')
         if not token or "Bearer " not in token:
-            return jsonify({'message': 'Authorization header missing!'}), 401
+            return jsonify({'message': 'Token missing!'}), 401
         try:
             token = token.split(" ")[1]
             jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
         except:
-            return jsonify({'message': 'Token expired or invalid!'}), 401
+            return jsonify({'message': 'Session expired!'}), 401
         return f(*args, **kwargs)
     return decorated
 
+# --- FIX: Serve index.html at Home Path ---
+@app.route('/')
+def home():
+    # Yeh line 404 error fix karegi
+    return send_from_directory('', 'index.html')
+
+# --- Login Endpoint ---
 @app.route('/login', methods=['POST'])
 def login():
-    auth = request.json
-    if auth and auth.get('password') == 'admin123': # Basic admin check
+    data = request.json
+    if data and data.get('password') == 'admin123':
         token = jwt.encode({
             'user': 'Admin',
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30) # 30 min expiry as requested
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
         }, app.config['SECRET_KEY'], algorithm="HS256")
         return jsonify({'token': token})
-    return jsonify({'message': 'Invalid Credentials'}), 401
+    return jsonify({'message': 'Login Failed'}), 401
 
+# --- Email Logs API ---
 @app.route('/api/logs', methods=['GET'])
 @token_required
 def get_logs():
-    # Mock logs for TECH FLARE
+    # Mock data for TECH FLARE
     return jsonify([
-        {"id": 1, "sender": "spoof@hacker.com", "subject": "Urgent Update", "type": "Phishing"},
-        {"id": 2, "sender": "ceo@techflare.com", "subject": "Quarterly Report", "type": "Safe"}
+        {"sender": "spoof@hacker.io", "subject": "Bank Alert", "type": "Phishing"},
+        {"sender": "hr@techflare.com", "subject": "Policy Update", "type": "Safe"},
+        {"sender": "support@google.com", "subject": "Sign-in attempt", "type": "Suspicious"}
     ])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
