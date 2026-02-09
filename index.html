@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flare Security Admin</title>
+    <style>
+        body { display: flex; margin: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; }
+        #sidebar { width: 260px; background: #1a2a3a; color: white; padding: 20px; }
+        #main { flex-grow: 1; padding: 30px; background: #f8f9fa; }
+        .nav-link { padding: 15px; cursor: pointer; border-radius: 5px; margin-bottom: 5px; }
+        .nav-link:hover { background: #2c3e50; }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Flare Security</h2>
+        <hr>
+        <div class="nav-link" onclick="showPage('dashboard')">📧 Email Dashboard</div>
+        <div class="nav-link" onclick="showPage('integration')">⚙️ Email Integration</div>
+    </div>
+    <div id="main">
+        <div id="dashboard">
+            <h1>Email Logs</h1>
+            <table id="logTable">
+                <thead><tr><th>Sender</th><th>Subject</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="integration" class="hidden">
+            <h1>Integrations</h1>
+            <p>Connect your <b>Google Workspace</b> to start scanning.</p>
+            <button onclick="alert('Redirecting to Google Marketplace...')">Install Google App</button>
+        </div>
+    </div>
+    <script>
+        function showPage(id) {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('integration').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
