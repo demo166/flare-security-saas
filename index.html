@@ -2,131 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flare Security Admin Dashboard</title>
     <style>
-        /* CSS for Professional SaaS Look */
-        body { display: flex; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; background-color: #f4f7f6; }
-        #sidebar { width: 260px; background: #1a2a3a; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        #main { flex-grow: 1; padding: 40px; overflow-y: auto; }
-        
-        h2 { color: #ecf0f1; margin-bottom: 30px; border-bottom: 1px solid #34495e; padding-bottom: 10px; }
-        .nav-link { padding: 15px; cursor: pointer; border-radius: 8px; margin-bottom: 10px; transition: 0.3s; display: flex; align-items: center; }
+        body { display: flex; margin: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; background: #f0f2f5; }
+        #sidebar { width: 260px; background: #1a2a3a; color: white; padding: 20px; }
+        #main { flex-grow: 1; padding: 40px; }
+        .nav-link { padding: 15px; cursor: pointer; border-radius: 5px; margin-bottom: 5px; transition: 0.3s; }
         .nav-link:hover { background: #34495e; }
         .nav-link.active { background: #3498db; }
-        
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .hidden { display: none; }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: #7f8c8d; text-transform: uppercase; font-size: 12px; }
-        
-        .status-phishing { color: #e74c3c; font-weight: bold; background: #fdedec; padding: 5px 10px; border-radius: 4px; }
-        .status-safe { color: #27ae60; font-weight: bold; background: #ebf5fb; padding: 5px 10px; border-radius: 4px; }
-        
-        .btn-google { background: #4285F4; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .phishing { color: #e74c3c; font-weight: bold; }
+        .safe { color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
         <h2>Flare Security</h2>
-        <div id="link-dashboard" class="nav-link active" onclick="showPage('dashboard')">📧 Email Dashboard</div>
-        <div id="link-integration" class="nav-link" onclick="showPage('integration')">⚙️ Email Integration</div>
-        <div class="nav-link" onclick="logout()" style="margin-top: auto; color: #e74c3c;">🚪 Logout</div>
+        <div id="nav-dash" class="nav-link active" onclick="showPage('dashboard')">📧 Email Dashboard</div>
+        <div id="nav-int" class="nav-link" onclick="showPage('integration')">⚙️ Email Integration</div>
+        <div class="nav-link" onclick="logout()" style="margin-top: 50px; color: #ff7675;">Logout</div>
     </div>
 
     <div id="main">
-        
         <div id="dashboard" class="card">
             <h1>Email Security Logs</h1>
-            <p>Real-time monitoring for <b>TECH FLARE</b> domains.</p>
             <table id="logTable">
-                <thead>
-                    <tr>
-                        <th>Sender</th>
-                        <th>Subject</th>
-                        <th>Security Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
+                <thead><tr><th>Sender</th><th>Subject</th><th>Status</th></tr></thead>
+                <tbody></tbody>
             </table>
         </div>
 
         <div id="integration" class="card hidden">
             <h1>Integrations</h1>
-            <p>Connect your <b>Google Workspace</b> to enable "Admin Install" protection.</p>
-            <div style="border: 1px dashed #ccc; padding: 40px; text-align: center; border-radius: 10px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Icons-09-512.png" width="50" alt="Google"><br><br>
-                <button class="btn-google" onclick="connectGoogle()">Admin Install for Gmail</button>
-                <p style="font-size: 12px; color: #7f8c8d; margin-top: 15px;">Requires administrator privileges.</p>
-            </div>
+            <p>Connect Google Workspace to start scanning emails.</p>
+            <button onclick="alert('Redirecting to Google Marketplace...')">Connect Google App</button>
         </div>
-
     </div>
 
     <script>
-        // 1. LIVE RENDER BACKEND URL
+        // 1. LIVE RENDER URL
         const API_URL = "https://flare-security-saas.onrender.com";
 
-        // Navigation Logic
         function showPage(id) {
             document.getElementById('dashboard').classList.add('hidden');
             document.getElementById('integration').classList.add('hidden');
-            document.getElementById('link-dashboard').classList.remove('active');
-            document.getElementById('link-integration').classList.remove('active');
+            document.getElementById('nav-dash').classList.remove('active');
+            document.getElementById('nav-int').classList.remove('active');
             
             document.getElementById(id).classList.remove('hidden');
-            document.getElementById('link-' + id).classList.add('active');
-
+            document.getElementById('nav-' + (id==='dashboard'?'dash':'int')).classList.add('active');
             if(id === 'dashboard') fetchLogs();
         }
 
-        // 2. FETCH LOGS FROM RENDER
         async function fetchLogs() {
-            try {
-                const response = await fetch(`${API_URL}/api/logs`, {
-                    headers: {
-                        // Header for secure access
-                        'Authorization': 'Bearer ' + localStorage.getItem('flare_token')
-                    }
-                });
-
-                if (!response.ok) throw new Error("Unauthorized Access");
-
-                const logs = await response.json();
-                const tbody = document.querySelector('#logTable tbody');
-                tbody.innerHTML = ''; 
-
-                logs.forEach(log => {
-                    const statusClass = log.type === 'Phishing' ? 'status-phishing' : 'status-safe';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${log.sender}</td>
-                            <td>${log.subject}</td>
-                            <td><span class="${statusClass}">${log.type}</span></td>
-                        </tr>`;
-                });
-            } catch (err) {
-                console.error("Dashboard Error:", err);
-                // Redirect to login if token is missing
-                if (!localStorage.getItem('flare_token')) alert("Please login first!");
+            const token = localStorage.getItem('flare_token');
+            if(!token) {
+                const pass = prompt("Enter Admin Password:");
+                if(pass === 'admin123') {
+                    const res = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({password: 'admin123'})
+                    });
+                    const data = await res.json();
+                    localStorage.setItem('flare_token', data.token);
+                    location.reload();
+                }
+                return;
             }
+
+            try {
+                const res = await fetch(`${API_URL}/api/logs`, {
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                const logs = await res.json();
+                const tbody = document.querySelector('#logTable tbody');
+                tbody.innerHTML = '';
+                logs.forEach(log => {
+                    tbody.innerHTML += `<tr>
+                        <td>${log.sender}</td>
+                        <td>${log.subject}</td>
+                        <td class="${log.type==='Phishing'?'phishing':'safe'}">${log.type}</td>
+                    </tr>`;
+                });
+            } catch (e) { console.error(e); }
         }
 
-        function connectGoogle() {
-            alert("Redirecting to Google Workspace Marketplace for Admin Install...");
-            // Yahan aap apna Marketplace App URL dalenge aage chalkar
-        }
-
-        function logout() {
-            localStorage.removeItem('flare_token');
-            location.reload();
-        }
-
-        // Auto-load logs on startup
+        function logout() { localStorage.removeItem('flare_token'); location.reload(); }
         window.onload = fetchLogs;
     </script>
 </body>
